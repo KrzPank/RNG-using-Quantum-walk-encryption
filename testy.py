@@ -1,5 +1,5 @@
 import matplotlib
-matplotlib.use('Agg')  # <-- to rozwiązuje problem z init.tcl
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import math
 from collections import Counter
@@ -21,7 +21,7 @@ def plot_histogram(byte_data, output_path='histogram.png'):
     
     plt.figure(figsize=(12, 6))
     plt.bar(range(256), values, width=1.0, edgecolor='black')
-    plt.title('Histogram częstości bajtów (0-255)')
+    plt.title('Empiryczny rozklad zmiennych losowych po post-procesingu')
     plt.xlabel('Bajt')
     plt.ylabel('Częstość')
     plt.grid(True)
@@ -30,17 +30,25 @@ def plot_histogram(byte_data, output_path='histogram.png'):
     print(f"Histogram zapisany jako: {output_path}")
 
 def main():
-    path = 'output.bin'  # <- Zamień na ścieżkę do swojego pliku
+    path = 'source.bin'
     data = read_binary_file(path)
     entropy = calculate_entropy(data)
     print(f"Entropia pliku: {entropy:.10f} bitów na bajt")
-    plot_histogram(data)
+    plot_histogram(data, "images/source_histogram.png")
+    
+    path = 'post.bin'
+    data = read_binary_file(path)
+    entropy = calculate_entropy(data)
+    print(f"Entropia pliku: {entropy:.10f} bitów na bajt")
+    plot_histogram(data, "images/post_histogram.png")
 
-    path2 = 'aes_256_output.bin'  # <- Zamień na ścieżkę do swojego pliku
+    path2 = 'aes.bin'
     data2 = read_binary_file(path2)
     entropy = calculate_entropy(data2)
     print(f"Entropia pliku: {entropy:.10f} bitów na bajt")
-    plot_histogram(data2, "aes_histogram.png")
+    plot_histogram(data2, "images/aes_histogram.png")
+
+
 
 if __name__ == "__main__":
     main()

@@ -3,6 +3,8 @@ from PIL import Image
 from scipy.ndimage import zoom
 from qiskit import QuantumCircuit, transpile
 from qiskit.quantum_info import Statevector, Operator
+from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
 import os
 
 
@@ -11,6 +13,33 @@ def placholder_quantum_walks(T, r, alpha, beta):   # Quantum walks TO DO
     P = np.random.rand(T)
     P /= np.sum(P)
     return P
+
+def encrypt_file_aes_ctr(input_path, output_path, key_path='key.bin', nonce_path='nonce.bin'):
+    with open(input_path, 'rb') as f:
+        data = f.read()
+
+    key = get_random_bytes(32)
+    nonce = get_random_bytes(8)
+
+    cipher = AES.new(key, AES.MODE_CTR, nonce=nonce)
+    ciphertext = cipher.encrypt(data)
+
+    with open(output_path, 'wb') as f:
+        f.write(ciphertext)
+
+def clean():
+    folders = ['source_output', 'output', 'tiles_output']
+    for folder in folders:
+        if os.path.exists(folder):
+            for filename in os.listdir(folder):
+                file_path = os.path.join(folder, filename)
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+                    print(f"Deleted file: {file_path}")
+                elif os.path.isdir(file_path):
+                    print(f"Skipping folder inside {folder}: {file_path}")
+        else:
+            print(f"Folder does not exist: {folder}")
 
 
 def quantum_walks(T, r, alpha, beta):
@@ -183,11 +212,37 @@ def merge(input_folder, output_file):
 
     print(f"\n Merged")
 
-#'''
+
+clean()
+
+input_folder = 'tiles_output'
+output_folder = 'source_output'
+
 off_x1, off_y1 = chop_image_to_tiles("images/cat1.jpg", "tiles_output/")
 off_x2, off_y2 = chop_image_to_tiles("images/cat2.jpg", "tiles_output/", off_x1 + 1, off_y1 + 1 )
-#chop_image_to_tiles("images/cat3.jpg", "tiles_output/", off_x2 + 1, off_y2 + 1)
+
+#ox, oy = chop_image_to_tiles("images/white.jpg", "tiles_output/")
+
+for filename in os.listdir(input_folder):
+    if filename.lower().endswith(('.png')):
+        img_path = os.path.join(input_folder, filename)
+        
+        img = Image.open(img_path).convert('L')
+        
+        img_bytes = img.tobytes()
+        output_path = os.path.join(output_folder, f"{os.path.splitext(filename)[0]}.bin")
+        with open(output_path, 'wb') as f:
+            f.write(img_bytes)
+
+        print(f"Wrote raw grayscale data for {filename} to {output_path}")
+
+merge(output_folder, "source.bin")
+
 
 save_images_to_bin("tiles_output/", "output/", T=51, r=100, alpha=np.pi/4, beta=np.pi/3)
-merge("output/", "output.bin")
-#'''
+merge("output/", "post.bin")
+
+
+input_file = 'post.bin'
+encrypted_file = 'aes.bin'
+encrypt_file_aes_ctr(input_file, encrypted_file)

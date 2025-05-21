@@ -221,7 +221,6 @@ output_folder = 'source_output'
 off_x1, off_y1 = chop_image_to_tiles("images/cat1.jpg", "tiles_output/")
 off_x2, off_y2 = chop_image_to_tiles("images/cat2.jpg", "tiles_output/", off_x1 + 1, off_y1 + 1 )
 
-#ox, oy = chop_image_to_tiles("images/white.jpg", "tiles_output/")
 
 for filename in os.listdir(input_folder):
     if filename.lower().endswith(('.png')):
@@ -229,7 +228,9 @@ for filename in os.listdir(input_folder):
         
         img = Image.open(img_path).convert('L')
         
-        img_bytes = img.tobytes()
+        #img_bytes = img.tobytes()
+        img_array = np.array(img).astype(np.uint8).flatten()
+        img_bytes = img_array.tobytes()
         output_path = os.path.join(output_folder, f"{os.path.splitext(filename)[0]}.bin")
         with open(output_path, 'wb') as f:
             f.write(img_bytes)
